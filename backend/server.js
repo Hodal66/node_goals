@@ -13,7 +13,8 @@ const port = process.env.PORT;
 app.get("/", (req, res) => {
   res.send("Server is running ");
 });
-app.use("/api/goals", require("./routes/goalsRoutes"));
+app.use("/api/goals", require("./routes/goalRoute"));
+app.use("/api/users", require("./routes/userRoute"));
 
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);
