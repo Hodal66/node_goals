@@ -1,10 +1,14 @@
+const asyncHandler = require("express-async-handler");
+const Goal = require("../models/goalModel");
+const User = require("../models/userModel");
+
 //@ desc Get Goals
 //@Route Get api/goals
 //@access  Private
-const asyncHandler = require("express-async-handler");
-const Goal = require("../models/goalModel");
 const getGoals = asyncHandler(async (req, res, next) => {
-  const goals = await Goal.find();
+  const goals = await Goal.find({
+    user: req.user.id,
+  });
   res.status(200).json({
     message: goals,
   });
@@ -21,6 +25,7 @@ const setGoals = asyncHandler(async (req, res, next) => {
 
   const createGoal = await Goal.create({
     text: req.body.text,
+    user: req.user.id,
   });
   res.status(200).json({
     message: createGoal,
@@ -36,6 +41,25 @@ const updateGoals = asyncHandler(async (req, res, next) => {
     res.status(400).json({
       // message: `We can not find corresponding Id Of ${req.params.id} `,
       message: "can't find id",
+    });
+  }
+
+  const user = await User.findById(req.user.id);
+
+  //check if the user exits!!
+
+  if (!user) {
+    res.status(401).json({
+      success: fail,
+      message: "OOPs User not Found!!!",
+    });
+  }
+  //Make sure the logged in user matches the goals
+
+  if (goal.user.toString() !== user.id) {
+    res.status(401).json({
+      success: false,
+      message: "User not authorized!!!",
     });
   }
   const updateMyGoal = await Goal.findByIdAndUpdate(req.params.id, req.body, {
@@ -56,10 +80,23 @@ const deleteGoals = asyncHandler(async (req, res, next) => {
   if (!goal) {
     return res.status(400).json("No id found please try again");
   }
-  const deletedGoal = await Goal.findByIdAndDelete(req.params.id);
-  if (deletedGoal) {
-    return res.status(200).json({
-      message: "Deleted successfully",
+
+  const user = await User.findById(req.user.id);
+
+  //check if the user exits!!
+
+  if (!user) {
+    res.status(401).json({
+      success: fail,
+      message: "OOPs User not Found!!!",
+    });
+  }
+  //Make sure the logged in user matches the goals
+
+  if (goal.user.toString() !== user.id) {
+    res.status(401).json({
+      success: false,
+      message: "User not authorized!!!",
     });
   }
 });
